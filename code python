@@ -1,0 +1,66 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.tree import DecisionTreeClassifier as DTC, DecisionTreeRegressor as DTR
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.tree import plot_tree
+
+# Mengimpor dataset Drugs
+drugs = pd.read_csv('/content/drug200.csv')
+
+# Menampilkan pairplot untuk melihat hubungan antar variabel
+sns.pairplot(data=drugs, hue='Drug')
+
+# Menampilkan informasi tentang dataset
+drugs.info()
+
+# Menggunakan label encoding untuk fitur kategori
+label_enc = LabelEncoder()
+categorical_cols = drugs.select_dtypes(include='O').columns
+
+for col in categorical_cols:
+    drugs[col] = label_enc.fit_transform(drugs[col])
+
+# Menampilkan data setelah encoding
+drugs.head()
+
+# Memisahkan data menjadi X (fitur) dan y (target)
+X = drugs.drop(columns='Drug')
+y = drugs['Drug']
+
+# Menampilkan X dan y
+display(X.head(3), y.head(3))
+
+# Membagi data menjadi set pelatihan dan pengujian
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
+
+# Membangun model Decision Tree
+tree_clf = DTC()
+
+# Melatih model
+tree_clf.fit(X_train, y_train)
+
+# Menampilkan akurasi model pada set pelatihan
+train_accuracy = tree_clf.score(X_train, y_train)
+print("Akurasi pada set pelatihan:", train_accuracy)
+
+# Menampilkan akurasi model pada set pengujian
+test_accuracy = tree_clf.score(X_test, y_test)
+print("Akurasi pada set pengujian:", test_accuracy)
+
+# Melakukan prediksi dan menghitung akurasi menggunakan accuracy_score
+y_pred = tree_clf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print("Akurasi menggunakan accuracy_score:", accuracy)
+
+# Melihat laporan klasifikasi
+report = classification_report(y_test, y_pred)
+print("Laporan Klasifikasi:\n", report)
+
+# Visualisasi Decision Tree
+plt.figure(figsize=(10, 8), dpi=200)
+plot_tree(tree_clf, feature_names=drugs.columns, filled=True)
+plt.show()
